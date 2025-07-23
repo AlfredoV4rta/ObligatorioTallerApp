@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@ionic/core/dist/ionic/ionic.esm.js"></script>
+    <script nomodule src="https://cdn.jsdelivr.net/npm/@ionic/core/dist/ionic/ionic.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@ionic/core/css/ionic.bundle.css" />
+    <title>Aplicacion Goalify </title>
+</head>
+<body>
+
+    <!-- Menu Principal -->
+
+    <ion-menu content-id="main-content" id="menuPrincipal">
+    <ion-header>
+    <ion-toolbar color="dark">
+      <ion-title>Menu:</ion-title>
+    </ion-toolbar>
+  </ion-header>
+  <ion-content class="ion-padding">
+    <ion-item id="btnRegistrarUsuario">Registrar Usuario</ion-item>
+    <ion-item id="btnLogin">Login</ion-item>
+    <ion-item id="btnRegistrarEvaluacion">Registrar Evaluacion</ion-item>
+    <ion-item id="btnListaEvaluacion">Lista de evaluaciones</ion-item>
+    <ion-item id="btnInforme">Informe</ion-item>
+    <ion-item id="btnMapa">Mapa</ion-item>
+    
+  </ion-content>
+
+</ion-menu>
+
+<!-- Pantalla Home -->
+<page-home class="ion-page" id="main-content" id="pantallaHome">
+  <ion-header>
+    <ion-toolbar>
+      <ion-buttons slot="start">
+        <ion-menu-button></ion-menu-button>
+      </ion-buttons>
+      <ion-title>Goalify</ion-title>
+    </ion-toolbar>
+  </ion-header>
+  <ion-content class="ion-padding"> <img src="img/metas.jpeg" > </ion-content>
+</page-home>
+
+<!-- Pantalla Login -->
+<page-login class="ion-page" id="main-content" id="pantallaHome">
+  <ion-header>
+    <ion-toolbar>
+      <ion-buttons slot="start">
+        <ion-menu-button></ion-menu-button>
+      </ion-buttons>
+      <ion-title>Goalify</ion-title>
+    </ion-toolbar>
+  </ion-header>
+  <ion-content class="ion-padding"> 
+<ion-item><ion-input label="Usuario" id="txtUsuario"></ion-input></ion-item>  
+<ion-item><ion-input label="Pass" id="txtPass"></ion-input></ion-item> 
+<ion-button id="btnLogin">Login</ion-button>
+  </ion-content>
+</page-login>
+
+<!-- Registro de usuario -->
+<page-login class="ion-page" id="main-content" id="pantallaHome">
+  <ion-header>
+    <ion-toolbar>
+      <ion-buttons slot="start">
+        <ion-menu-button></ion-menu-button>
+      </ion-buttons>
+      <ion-title>Goalify</ion-title>
+    </ion-toolbar>
+  </ion-header>
+  <ion-content class="ion-padding"> 
+    
+<ion-item><ion-input label="Usuario" id="txtUsuario"></ion-input></ion-item>  
+<ion-item><ion-input label="Pass" id="txtPass"></ion-input></ion-item> 
+<ion-item><ion-input label="Pais" id="txtPais"></ion-input></ion-item> 
+<ion-button id="btnLogin">Registrar</ion-button>
+  </ion-content>
+</page-login>
+    
+</body>
+</html>
