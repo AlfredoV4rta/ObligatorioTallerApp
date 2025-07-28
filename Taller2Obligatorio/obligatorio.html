@@ -9,6 +9,20 @@
     <title>Aplicacion Goalify </title>
 </head>
 <body>
+  <ion-app>
+
+  <!--Sector de ruteo -->
+
+<ion-router id="ruteo">
+  <ion-route url="/" component="page-home"></ion-route>
+  <ion-route url="login" component="page-login"></ion-route>
+  <ion-route url="registrarUsuario" component="page-registrarUsuario"></ion-route>
+  <ion-route url="registrarEvaluacion" component="page-registrarEvaluacion"></ion-route>
+  <ion-route url="listaEvaluacion" component="page-listaEvaluacion"></ion-route>
+  <ion-route url="informe" component="page-informe"></ion-route>
+   <ion-route url="mapa" component="page-mapa"></ion-route>
+</ion-router>
+<ion-nav></ion-nav>
 
     <!-- Menu Principal -->
 
@@ -19,19 +33,21 @@
     </ion-toolbar>
   </ion-header>
   <ion-content class="ion-padding">
-    <ion-item id="btnRegistrarUsuario">Registrar Usuario</ion-item>
-    <ion-item id="btnLogin">Login</ion-item>
-    <ion-item id="btnRegistrarEvaluacion">Registrar Evaluacion</ion-item>
-    <ion-item id="btnListaEvaluacion">Lista de evaluaciones</ion-item>
-    <ion-item id="btnInforme">Informe</ion-item>
-    <ion-item id="btnMapa">Mapa</ion-item>
+    <ion-item href="/registrarUsuario" id="btnMenuRegistrarUsuario" onclick="cerrarMenu()">Registrar Usuario</ion-item>
+    <ion-item href="/login" id="btnMenuLogin" onclick="cerrarMenu()">Login</ion-item>
+    <ion-item href="/registrarEvaluacion" id="btnMenuRegistrarEvaluacion" onclick="cerrarMenu()">Registrar Evaluacion</ion-item>
+    <ion-item href="/listaEvaluacion" id="btnMenuListaEvaluacion" onclick="cerrarMenu()">Lista de evaluaciones</ion-item>
+    <ion-item href="/informe" id="btnMenuInforme" onclick="cerrarMenu()">Informe</ion-item>
+    <ion-item href="/mapa" id="btnMenuMapa" onclick="cerrarMenu()">Mapa</ion-item>
+    <ion-item id="btnMenuLogout" onclick="logout(); cerrarMenu()">Logout</ion-item>
     
   </ion-content>
 
 </ion-menu>
+<div class="ion-page" id="main-content"></div>
 
 <!-- Pantalla Home -->
-<page-home class="ion-page" id="main-content" id="pantallaHome">
+<page-home class="ion-page" id="pantallaHome">
   <ion-header>
     <ion-toolbar>
       <ion-buttons slot="start">
@@ -44,7 +60,7 @@
 </page-home>
 
 <!-- Pantalla Login -->
-<page-login class="ion-page" id="main-content" id="pantallaHome">
+<page-login class="ion-page"  id="pantallaLogin">
   <ion-header>
     <ion-toolbar>
       <ion-buttons slot="start">
@@ -61,7 +77,7 @@
 </page-login>
 
 <!-- Registro de usuario -->
-<page-login class="ion-page" id="main-content" id="pantallaHome">
+<page-registrarUsuario class="ion-page"id="pantallaRegistrarUsuario">
   <ion-header>
     <ion-toolbar>
       <ion-buttons slot="start">
@@ -72,12 +88,15 @@
   </ion-header>
   <ion-content class="ion-padding"> 
     
-<ion-item><ion-input label="Usuario" id="txtUsuario"></ion-input></ion-item>  
-<ion-item><ion-input label="Pass" id="txtPass"></ion-input></ion-item> 
-<ion-item><ion-input label="Pais" id="txtPais"></ion-input></ion-item> 
-<ion-button id="btnLogin">Registrar</ion-button>
+<ion-item><ion-input label="Usuario" id="txtUser"></ion-input></ion-item>  
+<ion-item><ion-input label="Pass" id="txtPassword"></ion-input></ion-item> 
+<ion-item><ion-select label="Pais" id="slcPais"></ion-select></ion-item> 
+<ion-button id="btnRegistrarUsuario">Registrar</ion-button>
   </ion-content>
-</page-login>
+</page-registrarUsuario>
+
+</ion-app>
+<script src="obligatorio.js"></script>
     
 </body>
 </html>
