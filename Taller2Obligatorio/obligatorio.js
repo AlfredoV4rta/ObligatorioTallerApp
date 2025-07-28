@@ -106,7 +106,9 @@ function hacerRegistro(nuevoUsuario){
             console.log(informacion)
             if (informacion.codigo=="200"){
                 alert ("Registro creado con éxito")
-                
+                localStorage.setItem("token",informacion.token)
+                localStorage.setItem("id",informacion.id)
+                usuarioConectado=  informacion.id
                 ocultarPantalla()
                 PantallaLogin.style.display="block"
                 mostrarMenuBasico()
