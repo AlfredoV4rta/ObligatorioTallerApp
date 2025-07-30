@@ -9,11 +9,21 @@ class Usuario{
     }
 }
 
+class Evaluacion {
+    constructor(objetivo, usuario, password, pais) {
+        this.objetivo = objetivo
+        this.usuario = usuario
+        this.password = password
+        this.pais = pais
+    }
+}
+
 const Menu = document.querySelector("#menuPrincipal")
 const Ruteo = document.querySelector("#ruteo")
 const PantallaHome = document.querySelector("#pantallaHome")
 const PantallaLogin = document.querySelector("#pantallaLogin")
 const PantallaRegistrarUsuario = document.querySelector("#pantallaRegistrarUsuario")
+const PantallaRegistrarEvaluacion = document.querySelector("#pantallaRegistrarEvaluacion")
 
 inicio()
 
@@ -21,6 +31,7 @@ function inicio(){
     ocultarTodoMenu()
     ocultarPantalla()
     obtenerPaises()
+    
     PantallaHome.style.display="none"
         if (localStorage.getItem("token")!=null){
          mostrarMenuVIP()
@@ -32,13 +43,15 @@ function inicio(){
     Ruteo.addEventListener("ionRouteDidChange", navegar)
     document.querySelector("#btnRegistrarUsuario").addEventListener("click", previaRegistrarUsuario)
     document.querySelector("#btnLogin").addEventListener("click", previaLogin)
-   
+    document.querySelector("#btnRegistrarEvaluacion").addEventListener("click", previaRegistrarEvaluacion)
+    document.querySelector("#btnMenuRegistrarEvaluacion").addEventListener("click", obtenerObjetivos)
 }
 
 function ocultarPantalla(){
     PantallaHome.style.display="none"
     PantallaLogin.style.display="none"
     PantallaRegistrarUsuario.style.display="none"
+    PantallaRegistrarEvaluacion.style.display = "none"
 }
 
 function navegar(evento){
@@ -46,7 +59,7 @@ function navegar(evento){
     if(evento.detail.to=="/") PantallaHome.style.display="block"
     if(evento.detail.to=="/login") PantallaLogin.style.display="block"
     if(evento.detail.to=="/registrarUsuario") PantallaRegistrarUsuario.style.display="block"
-
+    if(evento.detail.to=="/registrarEvaluacion") PantallaRegistrarEvaluacion.style.display="block"
 }
 
 function cerrarMenu(){
@@ -62,6 +75,7 @@ function mostrarMenuBasico(){
 
 function mostrarMenuVIP(){
       ocultarTodoMenu()
+    PantallaHome.style.display = "block"
     document.querySelector("#btnMenuRegistrarEvaluacion").style.display="block"
     document.querySelector("#btnMenuListaEvaluacion").style.display="block"
     document.querySelector("#btnMenuInforme").style.display="block"
@@ -81,16 +95,61 @@ function ocultarTodoMenu(){
     
    
 }
+
+function previaRegistrarEvaluacion(){
+    let objetivo = document.querySelector("#slcObjetivos").value
+    let calificacion = document.querySelector("#nCalificacion").value
+    let fecha = document.querySelector("#dtFecha").value
+
+    if(calificacion <=5 && calificacion >= -5) {
+        let nuevaEvaluacion = new Evaluacion(objetivo, localStorage.getItem('id'), calificacion, fecha)
+        registrarEvaluacion(nuevaEvaluacion)
+    }else {
+        alert("La calificacion va desde -5 a 5")
+    }
+
+    obtenerObjetivos()
+}
+
 function previaRegistrarUsuario(){
+
     let usuario= document.querySelector("#txtUser").value
     let password= document.querySelector("#txtPassword").value
     let pais= document.querySelector("#slcPais").value
 
     let nuevoUsuario= new Usuario(usuario, password, pais)
-    hacerRegistro(nuevoUsuario) 
+    registrarUsuario(nuevoUsuario)
 }
 
-function hacerRegistro(nuevoUsuario){
+function registrarEvaluacion(nuevaEvaluacion) {
+    fetch (`https://goalify.develotion.com/evaluaciones.php`,{
+        method:'POST',
+        headers:{
+        'Content-Type': 'application/json',
+        'token': localStorage.getItem('token'),
+        'iduser': localStorage.getItem('id')
+    },
+        body: JSON.stringify(nuevaEvaluacion)
+    })
+        .then(function (response){
+            console.log(response)
+            return response.json()
+        })
+        .then(function(informacion){
+            if(informacion.error=="") {
+                alert ("Pedido registrado con éxito")
+                ocultarTodo()
+                PantallaHome.style.display = "block"
+            }
+        })
+        .catch(function(error){
+            console.log(error)
+        })
+
+}
+
+
+function registrarUsuario(nuevoUsuario){
     fetch (`https://goalify.develotion.com/usuarios.php`,{
         method:'POST',
         headers:{
@@ -110,8 +169,8 @@ function hacerRegistro(nuevoUsuario){
                 localStorage.setItem("id",informacion.id)
                 usuarioConectado=  informacion.id
                 ocultarPantalla()
-                PantallaLogin.style.display="block"
-                mostrarMenuBasico()
+                PantallaHome.style.display="block"
+                mostrarMenuVIP()         
             }
             
         })
@@ -135,8 +194,38 @@ function obtenerPaises(){
         })
 }
 
+function obtenerObjetivos(){
+    fetch("https://goalify.develotion.com/objetivos.php",{
+        method:"GET",
+        headers:{
+            'Content-Type': 'application/json',
+            'token': localStorage.getItem('token'),
+            'iduser': localStorage.getItem('id')
+        }
+    })
+        .then(function (response){
+        return response.json()
+        })
+        .then(function(info){
+
+            cargarObjetivos(info.objetivos)
+        })
+        .catch(function(error){
+            console.log(error)
+        })
+}
+
+function cargarObjetivos(objetivos) {
+    let miSelect = ''
+
+    for (let unObjetivo of objetivos) {
+        miSelect+=`<ion-select-option value=${unObjetivo.id}>${unObjetivo.nombre}</ion-select-option>`
+    }
+
+    document.querySelector("#slcObjetivos").innerHTML=miSelect
+}
+
 function cargarPaises(){
-    console.log(listaPaises)
     let miSelect=""
 
     for (let unPais of listaPaises){
@@ -196,4 +285,17 @@ function logout() {
     ocultarPantalla();
     mostrarMenuBasico();
     Ruteo.push("/login");
+}
+
+document.addEventListener('DOMContentLoaded', (event) => {limitarFechaActual();});
+function limitarFechaActual() {
+const hoy = new Date();
+const año = hoy.getFullYear();
+const mes = ('0' + (hoy.getMonth() + 1)).slice(-2);
+const dia = ('0' + hoy.getDate()).slice(-2);
+const horas = ('0' + hoy.getHours()).slice(-2);
+const minutos = ('0' + hoy.getMinutes()).slice(-2);
+const segundos = ('0' + hoy.getSeconds()).slice(-2);
+const fechaMaxima = `${año}-${mes}-${dia}T${horas}:${minutos}:${segundos}`;
+document.querySelector('#dtFecha').setAttribute('max', fechaMaxima);
 }
