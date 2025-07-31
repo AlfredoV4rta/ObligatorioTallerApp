@@ -75,6 +75,7 @@
         </ion-toolbar>
       </ion-header>
       <ion-content class="ion-padding">
+        <h2>Login</h2>
         <ion-item><ion-input label="Usuario" id="txtUsuario"></ion-input></ion-item>
         <ion-item><ion-input label="Pass" type="password" id="txtPass"></ion-input></ion-item>
         <ion-button id="btnLogin">Login</ion-button>
@@ -92,7 +93,7 @@
         </ion-toolbar>
       </ion-header>
       <ion-content class="ion-padding">
-
+        <h2>Registro de Usuario</h2>
         <ion-item><ion-input label="Usuario" id="txtUser"></ion-input></ion-item>
         <ion-item><ion-input label="Pass" type="password" id="txtPassword"></ion-input></ion-item>
         <ion-item><ion-select label="Pais" id="slcPais"></ion-select></ion-item>
@@ -100,6 +101,7 @@
       </ion-content>
     </page-registrarUsuario>
 
+    <!-- Registro de Evaluacion -->
     <page-registrarEvaluacion class="ion-page" id="pantallaRegistrarEvaluacion">
       <ion-header>
         <ion-toolbar>
@@ -111,9 +113,9 @@
       </ion-header>
       <ion-content class="ion-padding">
         <h2>Registrar Evaluacion</h2>
-        <ion-item><ion-select label="Objetivos" id="slcObjetivos"></ion-select></ion-item>
-        <ion-item><ion-input label="Calificación" type="number" id="nCalificacion" min="-5" max="5"></ion-input></ion-item>
-        <ion-item><ion-datetime id="dtFecha"></ion-datetime></ion-input></ion-item>
+        <ion-item><ion-select label="Objetivos" id="slcObjetivos" label-placement="fixed" placeholder="Seleccione un objetivo"></ion-select></ion-item>
+        <ion-item><ion-input label="Calificación" type="number" id="nCalificacion" placeholder="Ingrese una calificacion" ></ion-input></ion-item>
+        <ion-item><ion-datetime id="dtFecha" presentation="date" ></ion-datetime></ion-input></ion-item>
         <ion-button id="btnRegistrarEvaluacion">Registrar</ion-button>
       </ion-content>
       </page-login>

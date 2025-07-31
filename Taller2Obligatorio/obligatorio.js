@@ -1,6 +1,9 @@
+//VARIABLES GLOBALES
 let usuarioConectado = null;
 let listaPaises = [];
 
+
+//CLASES
 class Usuario {
     constructor(usuario, password, pais) {
         this.usuario = usuario;
@@ -10,27 +13,28 @@ class Usuario {
 }
 
 class Evaluacion {
-    constructor(objetivo, usuario, password, pais) {
-        this.objetivo = objetivo;
-        this.usuario = usuario;
-        this.password = password;
-        this.pais = pais;
+    constructor(objetivo, usuario, calificacion, fecha) {
+        this.idObjetivo = objetivo;
+        this.idUsuario = usuario;
+        this.calificacion = calificacion;
+        this.fecha = fecha;
     }
 }
 
+
+// VARIABLES PANTALLA
 const Menu = document.querySelector("#menuPrincipal");
 const Ruteo = document.querySelector("#ruteo");
 const PantallaHome = document.querySelector("#pantallaHome");
 const PantallaLogin = document.querySelector("#pantallaLogin");
-const PantallaRegistrarUsuario = document.querySelector(
-    "#pantallaRegistrarUsuario"
-);
-const PantallaRegistrarEvaluacion = document.querySelector(
-    "#pantallaRegistrarEvaluacion"
-);
+const PantallaRegistrarUsuario = document.querySelector("#pantallaRegistrarUsuario");
+const PantallaRegistrarEvaluacion = document.querySelector("#pantallaRegistrarEvaluacion");
+
 
 inicio();
 
+
+//FUNCION PRINCIPAL (INICIO)
 function inicio() {
     ocultarTodoMenu();
     ocultarPantalla();
@@ -44,18 +48,14 @@ function inicio() {
     }
 
     Ruteo.addEventListener("ionRouteDidChange", navegar);
-    document
-        .querySelector("#btnRegistrarUsuario")
-        .addEventListener("click", previaRegistrarUsuario);
+    document.querySelector("#btnRegistrarUsuario").addEventListener("click", previaRegistrarUsuario);
     document.querySelector("#btnLogin").addEventListener("click", previaLogin);
-    document
-        .querySelector("#btnRegistrarEvaluacion")
-        .addEventListener("click", previaRegistrarEvaluacion);
-    document
-        .querySelector("#btnMenuRegistrarEvaluacion")
-        .addEventListener("click", obtenerObjetivos);
+    document.querySelector("#btnRegistrarEvaluacion").addEventListener("click", previaRegistrarEvaluacion);
+    document.querySelector("#btnMenuRegistrarEvaluacion").addEventListener("click", obtenerObjetivos);
 }
 
+
+//FUNCIONES DE NAVEGACION
 function ocultarPantalla() {
     PantallaHome.style.display = "none";
     PantallaLogin.style.display = "none";
@@ -67,10 +67,15 @@ function navegar(evento) {
     ocultarPantalla();
     if (evento.detail.to == "/") PantallaHome.style.display = "block";
     if (evento.detail.to == "/login") PantallaLogin.style.display = "block";
-    if (evento.detail.to == "/registrarUsuario")
-        PantallaRegistrarUsuario.style.display = "block";
-    if (evento.detail.to == "/registrarEvaluacion")
-        PantallaRegistrarEvaluacion.style.display = "block";
+    if (evento.detail.to == "/registrarUsuario") PantallaRegistrarUsuario.style.display = "block";
+    if (evento.detail.to == "/registrarEvaluacion"){
+        if (localStorage.getItem("token") != null){
+            PantallaRegistrarEvaluacion.style.display = "block";      
+        } else {
+            Ruteo.push("/login")
+            PantallaLogin.style.display = "block"
+        }  
+    } 
 }
 
 function cerrarMenu() {
@@ -103,12 +108,16 @@ function ocultarTodoMenu() {
     document.querySelector("#btnMenuLogout").style.display = "none";
 }
 
+
+//FUNCIONES PREVIAS
 function previaRegistrarEvaluacion() {
     let objetivo = document.querySelector("#slcObjetivos").value;
     let calificacion = document.querySelector("#nCalificacion").value;
     let fecha = document.querySelector("#dtFecha").value;
 
-    if (calificacion <= 5 && calificacion >= -5) {
+    let validarCredenciales = credencialesValidas(objetivo, calificacion, fecha)
+
+    if (validarCredenciales === "OK") {
         let nuevaEvaluacion = new Evaluacion(
             objetivo,
             localStorage.getItem("id"),
@@ -116,13 +125,15 @@ function previaRegistrarEvaluacion() {
             fecha
         );
         registrarEvaluacion(nuevaEvaluacion);
+        console.log(nuevaEvaluacion)
     } else {
-        alert("La calificacion va desde -5 a 5");
+        mostrarMensaje(Error, "Credencial Incorrecta", `${validarCredenciales}`);
     }
 
     obtenerObjetivos();
 }
 
+//HACER VALIDACIONES Y MOSTRAR MENSAJE
 function previaRegistrarUsuario() {
     let usuario = document.querySelector("#txtUser").value;
     let password = document.querySelector("#txtPassword").value;
@@ -132,6 +143,18 @@ function previaRegistrarUsuario() {
     registrarUsuario(nuevoUsuario);
 }
 
+function previaLogin() {
+    let usuario = document.querySelector("#txtUsuario").value;
+    let password = document.querySelector("#txtPass").value;
+
+    let nuevoLogin = new Object();
+    nuevoLogin.usuario = usuario;
+    nuevoLogin.password = password;
+    hacerLogin(nuevoLogin);
+}
+
+
+//FUNCIONES REGISTROS (POST)
 function registrarEvaluacion(nuevaEvaluacion) {
     fetch(`https://goalify.develotion.com/evaluaciones.php`, {
         method: "POST",
@@ -147,10 +170,11 @@ function registrarEvaluacion(nuevaEvaluacion) {
             return response.json();
         })
         .then(function (informacion) {
-            console.log(informacion)
-            alert(informacion.mensaje)
+            mostrarMensaje("SUCCESS", "Registro hecho correctamente","")
             ocultarPantalla()
+            Ruteo.push("/")
             PantallaHome.style.display = "block";
+            limpiarCampos()
         })
         .catch(function (error) {
             console.log(error);
@@ -170,16 +194,38 @@ function registrarUsuario(nuevoUsuario) {
             return response.json();
         })
         .then(function (informacion) {
-            console.log(informacion);
+            console.log(informacion)
             if (informacion.codigo == "200") {
-                alert("Registro creado con éxito");
                 localStorage.setItem("token", informacion.token);
                 localStorage.setItem("id", informacion.id);
                 usuarioConectado = informacion.id;
+                Ruteo.push("/");
                 ocultarPantalla();
                 PantallaHome.style.display = "block";
                 mostrarMenuVIP();
             }
+        })
+        .catch(function (error) {
+            console.log(error);
+        });
+}
+
+
+//FUNCIONES OBTENER (GET)
+function obtenerEvaluaciones(){
+    fetch("https://goalify.develotion.com/evaluaciones.php?idUsuario="+ localStorage.getItem("id"), {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            "token": localStorage.getItem("token"),
+            "iduser": localStorage.getItem("id"),
+        },
+    })
+        .then(function (response) {
+            return response.json();
+        })
+        .then(function (info) {
+            console.log(info)
         })
         .catch(function (error) {
             console.log(error);
@@ -207,8 +253,8 @@ function obtenerObjetivos() {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
-            token: localStorage.getItem("token"),
-            iduser: localStorage.getItem("id"),
+            "token": localStorage.getItem("token"),
+            "iduser": localStorage.getItem("id"),
         },
     })
         .then(function (response) {
@@ -222,6 +268,8 @@ function obtenerObjetivos() {
         });
 }
 
+
+//FUNCIONES CARGAR SELECT
 function cargarObjetivos(objetivos) {
     let miSelect = "";
 
@@ -241,16 +289,8 @@ function cargarPaises() {
     document.querySelector("#slcPais").innerHTML = miSelect;
 }
 
-function previaLogin() {
-    let usuario = document.querySelector("#txtUsuario").value;
-    let password = document.querySelector("#txtPass").value;
 
-    let nuevoLogin = new Object();
-    nuevoLogin.usuario = usuario;
-    nuevoLogin.password = password;
-    hacerLogin(nuevoLogin);
-}
-
+//FUNCION LOGUIN/LOGOUT
 function hacerLogin(nuevoLogin) {
     fetch(`https://goalify.develotion.com/login.php`, {
         method: "POST",
@@ -266,16 +306,16 @@ function hacerLogin(nuevoLogin) {
         .then(function (informacion) {
             console.log(informacion);
             if (informacion.codigo == "200") {
-                alert("Bienvenido");
-
+                mostrarMensaje("SUCCESS", "Bienvenido")
                 localStorage.setItem("token", informacion.token);
                 localStorage.setItem("id", informacion.id);
                 usuarioConectado = informacion.id;
+                Ruteo.push("/");
                 ocultarPantalla();
                 PantallaHome.style.display = "block";
                 mostrarMenuVIP();
             } else {
-                alert("Login incorrecto");
+                mostrarMensaje("WARNING", "Credenciales Incorrectas");
             }
         })
         .catch(function (error) {
@@ -292,9 +332,25 @@ function logout() {
     Ruteo.push("/login");
 }
 
-document.addEventListener("DOMContentLoaded", (event) => {
-    limitarFechaActual();
-});
+//FUNCIONES VALIDAR
+function credencialesValidas(objetivo, calificacion, fecha){
+    let mensaje = "OK"
+
+    if (objetivo === undefined) {
+        mensaje = "El objetivo no puede ser vacio"
+    }
+    if (calificacion > 5 || calificacion < -5 || calificacion === ''){
+        mensaje = "La calificación debe ser un número entre -5 y 5"
+    }
+    if (fecha === undefined) {
+        mensaje = "La fecha no puede estar vacia"
+    }
+    
+    return mensaje
+}
+
+//FUNCIONES ADICIONALES
+document.addEventListener("DOMContentLoaded", (event) => {limitarFechaActual();});
 function limitarFechaActual() {
     const hoy = new Date();
     const año = hoy.getFullYear();
@@ -305,4 +361,31 @@ function limitarFechaActual() {
     const segundos = ("0" + hoy.getSeconds()).slice(-2);
     const fechaMaxima = `${año}-${mes}-${dia}T${horas}:${minutos}:${segundos}`;
     document.querySelector("#dtFecha").setAttribute("max", fechaMaxima);
+}
+
+function mostrarMensaje(tipo, titulo, texto, duracion) {
+const toast = document.createElement('ion-toast');
+toast.header = titulo;
+toast.message = texto;
+if (!duracion) {
+duracion = 2000;
+}
+toast.duration = duracion;
+if (tipo === "ERROR") {
+toast.color = 'danger';
+toast.icon = "alert-circle-outline";
+} else if (tipo === "WARNING") {
+toast.color = 'warning';
+toast.icon = "warning-outline";
+} else if (tipo === "SUCCESS") {
+toast.color = 'success';
+toast.icon = "checkmark-circle-outline";
+}
+document.body.appendChild(toast);
+toast.present();
+}
+
+function limpiarCampos() {
+    document.querySelector("#slcObjetivos").value = 0
+    document.querySelector("#nCalificacion").value = ''
 }
