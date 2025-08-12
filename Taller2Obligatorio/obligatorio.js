@@ -29,7 +29,9 @@ const PantallaHome = document.querySelector("#pantallaHome");
 const PantallaLogin = document.querySelector("#pantallaLogin");
 const PantallaRegistrarUsuario = document.querySelector("#pantallaRegistrarUsuario");
 const PantallaRegistrarEvaluacion = document.querySelector("#pantallaRegistrarEvaluacion");
-
+const PantallaListado= document.querySelector("#pantallaListado")
+const PantallaInforme = document.querySelector("#pantallaInforme")
+const PantallaMapa = document.querySelector("#pantallaMapa")
 
 inicio();
 
@@ -52,6 +54,9 @@ function inicio() {
     document.querySelector("#btnLogin").addEventListener("click", previaLogin);
     document.querySelector("#btnRegistrarEvaluacion").addEventListener("click", previaRegistrarEvaluacion);
     document.querySelector("#btnMenuRegistrarEvaluacion").addEventListener("click", obtenerObjetivos);
+    document.querySelector("#btnMenuListaEvaluacion").addEventListener("click", previaListado);
+    document.querySelector("#btnMenuInforme").addEventListener("click", obtenerEvaluacionesInfome);
+    document.querySelector("#btnMenuMapa").addEventListener("click", obtenerUsuariosPorPais)
 }
 
 
@@ -61,6 +66,9 @@ function ocultarPantalla() {
     PantallaLogin.style.display = "none";
     PantallaRegistrarUsuario.style.display = "none";
     PantallaRegistrarEvaluacion.style.display = "none";
+    PantallaListado.style.display = "none";
+    PantallaInforme.style.display = "none";
+    PantallaMapa.style.display = "none"
 }
 
 function navegar(evento) {
@@ -71,6 +79,30 @@ function navegar(evento) {
     if (evento.detail.to == "/registrarEvaluacion"){
         if (localStorage.getItem("token") != null){
             PantallaRegistrarEvaluacion.style.display = "block";      
+        } else {
+            Ruteo.push("/login")
+            PantallaLogin.style.display = "block"
+        }  
+    } 
+    if (evento.detail.to == "/listaEvaluacion"){
+        if (localStorage.getItem("token") != null){
+            PantallaListado.style.display = "block";      
+        } else {
+            Ruteo.push("/login")
+            PantallaLogin.style.display = "block"
+        }  
+    } 
+    if (evento.detail.to == "/informe"){
+        if (localStorage.getItem("token") != null){
+            PantallaInforme.style.display = "block";      
+        } else {
+            Ruteo.push("/login")
+            PantallaLogin.style.display = "block"
+        }  
+    } 
+    if (evento.detail.to == "/mapa"){
+        if (localStorage.getItem("token") != null){
+            PantallaMapa.style.display = "block";      
         } else {
             Ruteo.push("/login")
             PantallaLogin.style.display = "block"
@@ -115,7 +147,7 @@ function previaRegistrarEvaluacion() {
     let calificacion = document.querySelector("#nCalificacion").value;
     let fecha = document.querySelector("#dtFecha").value;
 
-    let validarCredenciales = credencialesValidas(objetivo, calificacion, fecha)
+    let validarCredenciales = credencialesValidasEva(objetivo, calificacion, fecha)
 
     if (validarCredenciales === "OK") {
         let nuevaEvaluacion = new Evaluacion(
@@ -132,6 +164,30 @@ function previaRegistrarEvaluacion() {
 
     obtenerObjetivos();
 }
+function previaListado() {
+    let idusuario = localStorage.getItem("id");
+    let token = localStorage.getItem("token");
+    let url = "https://goalify.develotion.com/evaluaciones.php?idUsuario=" + idusuario;
+
+    fetch(url, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            "token": token,
+            "iduser": idusuario 
+        },
+    })
+    .then(function (response) {
+        return response.json();
+    })
+    .then(function (informacion) {
+        console.log(informacion.evaluaciones)
+        hacerListado(informacion.evaluaciones);
+    })
+    .catch(function(error){
+        console.log(error)
+    })
+}
 
 //HACER VALIDACIONES Y MOSTRAR MENSAJE
 function previaRegistrarUsuario() {
@@ -139,8 +195,14 @@ function previaRegistrarUsuario() {
     let password = document.querySelector("#txtPassword").value;
     let pais = document.querySelector("#slcPais").value;
 
-    let nuevoUsuario = new Usuario(usuario, password, pais);
-    registrarUsuario(nuevoUsuario);
+    let validarCredenciales = credencialesValidasReg(usuario, password, pais)
+
+    if (validarCredenciales === "OK") {
+        let nuevoUsuario = new Usuario(usuario, password, pais);
+        registrarUsuario(nuevoUsuario);
+    } else {
+        mostrarMensaje("WARNING", "Credencial Incorrecta", `${validarCredenciales}`)
+    }
 }
 
 function previaLogin() {
@@ -196,6 +258,7 @@ function registrarUsuario(nuevoUsuario) {
         .then(function (informacion) {
             console.log(informacion)
             if (informacion.codigo == "200") {
+                mostrarMensaje("SUCCESS", "BIENVENIDO!", '')
                 localStorage.setItem("token", informacion.token);
                 localStorage.setItem("id", informacion.id);
                 usuarioConectado = informacion.id;
@@ -212,7 +275,7 @@ function registrarUsuario(nuevoUsuario) {
 
 
 //FUNCIONES OBTENER (GET)
-function obtenerEvaluaciones(){
+function obtenerEvaluacionesListado(){
     fetch("https://goalify.develotion.com/evaluaciones.php?idUsuario="+ localStorage.getItem("id"), {
         method: "GET",
         headers: {
@@ -226,6 +289,27 @@ function obtenerEvaluaciones(){
         })
         .then(function (info) {
             console.log(info)
+            hacerListado()
+        })
+        .catch(function (error) {
+            console.log(error);
+        });
+}
+
+function obtenerEvaluacionesInfome(){
+    fetch("https://goalify.develotion.com/evaluaciones.php?idUsuario="+ localStorage.getItem("id"), {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            "token": localStorage.getItem("token"),
+            "iduser": localStorage.getItem("id"),
+        },
+    })
+        .then(function (response) {
+            return response.json();
+        })
+        .then(function (info) {
+            hacerInforme(info)
         })
         .catch(function (error) {
             console.log(error);
@@ -239,6 +323,7 @@ function obtenerPaises() {
         })
         .then(function (informacion) {
             listaPaises = informacion.paises;
+            console.log(informacion)
             cargarPaises();
         })
         .catch(function (error) {
@@ -262,6 +347,28 @@ function obtenerObjetivos() {
         })
         .then(function (info) {
             cargarObjetivos(info.objetivos);
+        })
+        .catch(function (error) {
+            console.log(error);
+        });
+}
+
+function obtenerUsuariosPorPais(){
+    PantallaMapa.style.display = "block"
+    fetch("https://goalify.develotion.com/usuariosPorPais.php", {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            "token": localStorage.getItem("token"),
+            "iduser": localStorage.getItem("id"),
+        },
+    })
+        .then(function (response){
+            return response.json();
+        })
+        .then(function(info) {
+            console.log(info)
+            cargarMapa(info)
         })
         .catch(function (error) {
             console.log(error);
@@ -333,7 +440,7 @@ function logout() {
 }
 
 //FUNCIONES VALIDAR
-function credencialesValidas(objetivo, calificacion, fecha){
+function credencialesValidasEva(objetivo, calificacion, fecha){
     let mensaje = "OK"
 
     if (objetivo === undefined) {
@@ -349,7 +456,23 @@ function credencialesValidas(objetivo, calificacion, fecha){
     return mensaje
 }
 
-//FUNCIONES ADICIONALES
+function credencialesValidasReg(usuario, contrasenia, pais) {
+    let mensaje = "OK"
+
+    if (usuario === "") {
+        mensaje = "El usuario no puede estar vacío!"
+    }
+    if (contrasenia === "") {
+        mensaje = "La contraseña no puede estar vacía!"
+    }
+    if (pais === undefined) {
+        mensaje = "El país no puede estar vacío!"
+    }
+
+    return mensaje
+}
+
+//FUNCIONES ADICIONALES (COMPLETAR FUNCION LIMPIAR CAMPOS)
 document.addEventListener("DOMContentLoaded", (event) => {limitarFechaActual();});
 function limitarFechaActual() {
     const hoy = new Date();
@@ -385,7 +508,113 @@ document.body.appendChild(toast);
 toast.present();
 }
 
+function hacerInforme(listadoEva) {
+    //Puntaje Global
+    let totalEva= listadoEva.evaluaciones.length
+    let totalCalificacionesEva= 0
+    for (let unaEva of listadoEva.evaluaciones) {
+        totalCalificacionesEva += unaEva.calificacion
+    }
+
+    let promedio = totalCalificacionesEva/totalEva
+    document.querySelector("#PuntajeGlobal").innerHTML = promedio.toFixed(2)
+
+    //Puntaje Diario
+    let totalEvaHoy= 0
+    let totalCalificacionesEvaHoy= 0
+    for (let unaEva of listadoEva.evaluaciones) {
+        if (evaluacionDeHoy(unaEva)) {
+            totalEvaHoy++
+            totalCalificacionesEvaHoy += unaEva.calificacion
+        }
+    }
+    let promedioHoy = 0 
+    if (totalEvaHoy != 0) {
+        promedioHoy = totalCalificacionesEvaHoy/totalEvaHoy
+    }
+    
+    document.querySelector("#PuntajeDiario").innerHTML= promedioHoy.toFixed(2)
+}
+
+function evaluacionDeHoy(unaEva){
+    let hoy = new Date()
+    const partesFecha = unaEva.fecha.split("T")[0].split("-");
+    const fechaEva = new Date(
+        parseInt(partesFecha[0]),           // año
+        parseInt(partesFecha[1]) - 1,       // mes (0-indexado)
+        parseInt(partesFecha[2])            // día
+    );
+    let esDeHoy = false
+
+    if (fechaEva.getDate() === hoy.getDate() && fechaEva.getMonth() === hoy.getMonth() && fechaEva.getFullYear() === hoy.getFullYear()) {
+        esDeHoy = true
+    }
+
+    return esDeHoy
+}
 function limpiarCampos() {
     document.querySelector("#slcObjetivos").value = 0
     document.querySelector("#nCalificacion").value = ''
+}
+
+function cargarMapa(info){
+    var map = L.map('map').setView([-33, -56], 5);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+}).addTo(map);
+for (let unPais of listaPaises) {
+       marker = L.marker([unPais.latitude, unPais.longitude]).addTo(map);
+       for (let unPaisxUsuario of info.paises) {
+        if(unPais.name == unPaisxUsuario.nombre){
+            marker.bindPopup(`<b>${unPais.name}</b><br>${unPaisxUsuario.cantidadDeUsuarios}`).openPopup();
+        }
+       }
+    }
+}
+
+function hacerListado(evaluaciones) {
+    let verEvaluacion = ``;
+    for (let unaE of evaluaciones) {
+    verEvaluacion += `<ion-item>
+                    <ion-label>
+                    <h3>Id: ${unaE.id}</h3>
+                    <h3>Fecha: ${unaE.fecha}</h3>
+                    <h3>Objetivo: ${unaE.idObjetivo}</h3>
+                    <h3>Calificación: ${unaE.calificacion}</h3>
+                    </ion-label>
+                    <ion-button onclick="eliminarEvaluacion(${unaE.id})">Eliminar</ion-button>
+                </ion-item>`
+    }
+
+    document.querySelector("#contenedorListado").innerHTML = verEvaluacion;
+}
+
+function eliminarEvaluacion(idEvaluacion){
+    let idusuario = localStorage.getItem("id");
+    let token = localStorage.getItem("token");
+    let url = "https://goalify.develotion.com/evaluaciones.php?idEvaluacion=" + idEvaluacion;
+
+    fetch(url, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            "token": token,
+            "iduser": idusuario 
+        },
+    })
+    .then(function (response) {
+        return response.json();
+    })
+    .then(function (informacion) {
+        if (informacion.codigo == 200){
+            mostrarMensaje ("SUCCESS", informacion.mensaje, "")
+            previaListado()
+        } else {
+            mostrarMensaje ("WARNING", informacion.mensaje, "")
+        }
+    })
+    .catch(function(error){
+        console.log(error)
+    })
 }
