@@ -618,3 +618,64 @@ function eliminarEvaluacion(idEvaluacion){
         console.log(error)
     })
 }
+
+function mostrarEvaluacionesFiltradas() {
+    let filtro = document.querySelector("#filtroFechas");
+    let rango = "historico";
+    if (filtro && filtro.value) {
+        rango = filtro.value;
+    }
+
+    let ahora = new Date();
+    let desde = null;
+
+    if (rango === "semana") {
+        desde = new Date(ahora);
+        desde.setDate(ahora.getDate() - 7)
+    } else if (rango === "mes") {
+        desde = new Date(ahora)
+        desde.setMonth(ahora.getMonth() - 1)
+    }
+
+    let filtradas = evaluacionesCargadas.filter(function(unaE) {
+        if (!desde) return true
+        let fechaEval = new Date(unaE.fecha)
+        return fechaEval >= desde && fechaEval <= ahora
+    });
+
+    let verEvaluacion = ""
+    for (let i = 0; i < filtradas.length; i++) {
+        let unaE = filtradas[i]
+        verEvaluacion += `<ion-item>
+            <ion-label>
+                <h3>Id: ${unaE.id}</h3>
+                <h3>Fecha: ${unaE.fecha}</h3>
+                <h3>Objetivo: ${unaE.idObjetivo}</h3>
+                <h3>Calificación: ${unaE.calificacion}</h3>
+            </ion-label>
+            <ion-button onclick="eliminarEvaluacion(${unaE.id})">Eliminar</ion-button>
+        </ion-item>`;
+    }
+    document.querySelector("#contenedorListado").innerHTML = `
+        <ion-item>
+            <ion-label>Filtrar por</ion-label>
+            <ion-select id="filtroFechas" value="${rango}">
+                <ion-select-option value="semana">Última semana</ion-select-option>
+                <ion-select-option value="mes">Último mes</ion-select-option>
+                <ion-select-option value="historico">Histórico</ion-select-option>
+            </ion-select>
+        </ion-item>
+        ${verEvaluacion}
+    `
+}
+document.addEventListener("ionChange", function(event) {
+    if (event.target && event.target.id === "filtroFechas") {
+        mostrarEvaluacionesFiltradas();
+    }
+})
+
+let evaluacionesCargadas = []
+function hacerListado(evaluaciones) {
+    evaluacionesCargadas = evaluaciones
+    mostrarEvaluacionesFiltradas()
+}
